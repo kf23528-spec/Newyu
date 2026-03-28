@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>📈 日本株式投資シミュレーター 2020-2025</title>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #111827;
+  --bg3: #1f2937;
+  --card: #1e2535;
+  --border: #2d3748;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --green: #10b981;
+  --green2: #065f46;
+  --red: #ef4444;
+  --red2: #7f1d1d;
+  --blue: #3b82f6;
+  --blue2: #1e3a5f;
+  --yellow: #f59e0b;
+  --purple: #8b5cf6;
+  --accent: #06b6d4;
+  --nav-h: 60px;
+  --header-h: 56px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif; font-size:14px; }
+
+/* ===== SCREENS ===== */
+.screen { position:fixed; inset:0; background:var(--bg); display:none; flex-direction:column; }
+.screen.active { display:flex; }
+
+/* ===== SPLASH ===== */
+#splash { justify-content:center; align-items:center; background:linear-gradient(135deg,#0a0e1a 0%,#0d1b2a 50%,#0a0e1a 100%); }
+.splash-logo { font-size:72px; margin-bottom:16px; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+.splash-title { font-size:22px; font-weight:900; color:var(--accent); letter-spacing:2px; text-align:center; margin-bottom:8px; }
+.splash-sub { font-size:13px; color:var(--text2); text-align:center; margin-bottom:40px; }
+.splash-btn { background:linear-gradient(135deg,var(--blue),var(--accent)); color:#fff; border:none; padding:16px 48px; border-radius:50px; font-size:18px; font-weight:700; cursor:pointer; box-shadow:0 4px 20px rgba(59,130,246,0.4); letter-spacing:1px; }
+.splash-info { margin-top:24px; text-align:center; color:var(--text3); font-size:12px; line-height:1.8; }
+
+/* ===== HEADER ===== */
+.header { height:var(--header-h); background:var(--bg2); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0; position:relative; }
+.header-back { background:none; border:none; color:var(--accent); font-size:20px; cursor:pointer; padding:4px; }
+.header-title { font-size:16px; font-weight:700; flex:1; }
+.header-date { font-size:11px; color:var(--text2); text-align:right; }
+
+/* ===== NAV ===== */
+.nav { height:var(--nav-h); background:var(--bg2); border-top:1px solid var(--border); display:flex; flex-shrink:0; }
+.nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; border:none; background:none; color:var(--text3); font-size:10px; cursor:pointer; transition:color 0.2s; }
+.nav-btn.active { color:var(--accent); }
+.nav-icon { font-size:22px; }
+
+/* ===== CONTENT ===== */
+.content { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+/* ===== TICKER ===== */
+.ticker-wrap { background:var(--bg3); border-bottom:1px solid var(--border); overflow:hidden; height:28px; flex-shrink:0; }
+.ticker-inner { display:flex; align-items:center; height:100%; white-space:nowrap; animation:ticker 80s linear infinite; }
+.ticker-item { display:inline-flex; align-items:center; gap:6px; padding:0 16px; font-size:11px; }
+.ticker-item .t-code { color:var(--text3); }
+.ticker-item .t-price { color:var(--text); font-weight:600; }
+.ticker-item .t-chg.up { color:var(--green); }
+.ticker-item .t-chg.dn { color:var(--red); }
+.ticker-sep { color:var(--border); }
+@keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+/* ===== MARKET SCREEN ===== */
+.market-header { padding:12px 16px; background:var(--card); border-bottom:1px solid var(--border); }
+.market-nikkei { display:flex; align-items:baseline; gap:8px; }
+.nikkei-label { font-size:11px; color:var(--text2); }
+.nikkei-val { font-size:28px; font-weight:900; color:var(--text); }
+.nikkei-chg { font-size:13px; font-weight:700; }
+.nikkei-chg.up { color:var(--green); }
+.nikkei-chg.dn { color:var(--red); }
+.game-date-bar { display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+.game-date { font-size:13px; color:var(--accent); font-weight:700; }
+.game-cash { font-size:13px; color:var(--yellow); font-weight:700; }
+
+/* SEARCH */
+.search-bar { padding:8px 16px; background:var(--bg2); border-bottom:1px solid var(--border); }
+.search-input { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:8px 12px; color:var(--text); font-size:14px; outline:none; }
+.search-input::placeholder { color:var(--text3); }
+
+/* SECTOR FILTER */
+.sector-filter { display:flex; gap:8px; padding:8px 16px; overflow-x:auto; background:var(--bg2); border-bottom:1px solid var(--border); }
+.sector-filter::-webkit-scrollbar { display:none; }
+.sector-btn { flex-shrink:0; padding:4px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg3); color:var(--text2); font-size:11px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.sector-btn.active { background:var(--blue); border-color:var(--blue); color:#fff; }
+
+/* STOCK LIST */
+.stock-list { padding:4px 0; }
+.stock-item { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; gap:12px; }
+.stock-item:active { background:var(--bg3); }
+.stock-item:hover { background:var(--bg3); }
+.stock-left { flex:1; min-width:0; }
+.stock-name { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.stock-code { font-size:11px; color:var(--text3); margin-top:2px; }
+.stock-sector-tag { display:inline-block; font-size:9px; background:var(--bg3); border:1px solid var(--border); color:var(--text3); padding:1px 5px; border-radius:3px; margin-left:4px; }
+.stock-mini-chart { width:60px; height:30px; flex-shrink:0; }
+.stock-right { text-align:right; flex-shrink:0; min-width:80px; }
+.stock-price { font-size:15px; font-weight:800; }
+.stock-chg { font-size:11px; font-weight:700; margin-top:2px; }
+.up { color:var(--green); }
+.dn { color:var(--red); }
+.flat { color:var(--text3); }
+
+/* owned badge */
+.owned-badge { display:inline-block; font-size:9px; background:var(--blue2); color:var(--blue); border:1px solid var(--blue); padding:1px 5px; border-radius:3px; margin-left:4px; }
+
+/* ===== STOCK DETAIL ===== */
+#detail { z-index:10; }
+.detail-price-area { padding:16px; background:var(--card); border-bottom:1px solid var(--border); }
+.detail-name { font-size:18px; font-weight:900; }
+.detail-code { font-size:12px; color:var(--text2); margin-top:2px; margin-bottom:12px; }
+.detail-price-big { font-size:36px; font-weight:900; }
+.detail-changes { display:flex; gap:16px; margin-top:4px; }
+.detail-chg-item { font-size:12px; }
+
+/* Chart area */
+.chart-area { padding:8px 0; background:var(--bg); }
+.chart-range-btns { display:flex; gap:0; padding:0 16px 8px; }
+.range-btn { flex:1; padding:5px; border:1px solid var(--border); background:var(--bg3); color:var(--text2); font-size:11px; cursor:pointer; }
+.range-btn:first-child { border-radius:6px 0 0 6px; }
+.range-btn:last-child { border-radius:0 6px 6px 0; }
+.range-btn.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+.main-chart { display:block; width:100%; }
+
+/* Stats grid */
+.stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); margin:0 0 8px; }
+.stat-cell { background:var(--card); padding:12px 16px; }
+.stat-label { font-size:10px; color:var(--text3); margin-bottom:4px; }
+.stat-val { font-size:14px; font-weight:700; }
+
+/* Trade panel */
+.trade-panel { padding:16px; background:var(--card); border-top:1px solid var(--border); flex-shrink:0; }
+.trade-tabs { display:flex; margin-bottom:12px; border-radius:8px; overflow:hidden; border:1px solid var(--border); }
+.trade-tab { flex:1; padding:8px; text-align:center; font-size:13px; font-weight:700; cursor:pointer; background:var(--bg3); color:var(--text2); transition:all 0.2s; }
+.trade-tab.buy.active { background:var(--green); color:#fff; }
+.trade-tab.sell.active { background:var(--red); color:#fff; }
+.trade-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.trade-label { font-size:12px; color:var(--text2); width:48px; flex-shrink:0; }
+.trade-input { flex:1; background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:8px 10px; color:var(--text); font-size:14px; text-align:right; outline:none; }
+.qty-btn { background:var(--bg3); border:1px solid var(--border); border-radius:6px; width:34px; height:34px; color:var(--text); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.trade-total { text-align:right; font-size:12px; color:var(--text2); margin-bottom:10px; }
+.trade-total span { color:var(--yellow); font-weight:700; font-size:14px; }
+.trade-exec-btn { width:100%; padding:14px; border-radius:10px; border:none; font-size:16px; font-weight:800; cursor:pointer; letter-spacing:1px; transition:opacity 0.2s; }
+.trade-exec-btn.buy { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+.trade-exec-btn.sell { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; }
+.trade-exec-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+/* ===== PORTFOLIO ===== */
+.pf-summary { padding:16px; background:linear-gradient(135deg,var(--card),var(--bg3)); border-bottom:1px solid var(--border); }
+.pf-total { font-size:28px; font-weight:900; }
+.pf-pnl { font-size:15px; font-weight:700; margin-top:4px; }
+.pf-breakdown { display:flex; gap:16px; margin-top:12px; }
+.pf-bd-item { flex:1; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; padding:10px; }
+.pf-bd-label { font-size:10px; color:var(--text3); }
+.pf-bd-val { font-size:14px; font-weight:700; margin-top:4px; }
+.pf-holdings { padding:4px 0; }
+.holding-item { display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; gap:12px; }
+.holding-item:active { background:var(--bg3); }
+.holding-left { flex:1; min-width:0; }
+.holding-name { font-size:13px; font-weight:700; }
+.holding-qty { font-size:11px; color:var(--text2); }
+.holding-right { text-align:right; }
+.holding-val { font-size:15px; font-weight:800; }
+.holding-pnl { font-size:11px; font-weight:700; margin-top:2px; }
+.empty-state { text-align:center; padding:60px 20px; color:var(--text3); }
+.empty-icon { font-size:48px; margin-bottom:12px; }
+
+/* CHART mini */
+.pf-chart-wrap { padding:16px; }
+.pf-chart-title { font-size:12px; color:var(--text2); margin-bottom:8px; }
+
+/* ===== NEWS ===== */
+.news-list { padding:4px 0; }
+.news-item { padding:14px 16px; border-bottom:1px solid var(--border); }
+.news-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+.news-date { font-size:10px; color:var(--text3); }
+.news-tag { font-size:9px; padding:2px 8px; border-radius:10px; font-weight:700; }
+.news-tag.crash { background:var(--red2); color:var(--red); }
+.news-tag.rally { background:var(--green2); color:var(--green); }
+.news-tag.event { background:var(--blue2); color:var(--blue); }
+.news-tag.policy { background:#4a1d96; color:var(--purple); }
+.news-tag.intl { background:#1c1917; color:var(--yellow); }
+.news-headline { font-size:14px; font-weight:700; margin-bottom:4px; line-height:1.5; }
+.news-body { font-size:12px; color:var(--text2); line-height:1.6; }
+.news-impact { display:flex; align-items:center; gap:4px; margin-top:6px; font-size:11px; }
+.news-future { opacity:0.3; }
+.news-future .news-headline::before { content:"🔒 "; }
+
+/* ===== HISTORY ===== */
+.tx-list { padding:4px 0; }
+.tx-item { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.tx-left { }
+.tx-name { font-size:13px; font-weight:700; }
+.tx-detail { font-size:11px; color:var(--text2); margin-top:2px; }
+.tx-date { font-size:10px; color:var(--text3); margin-top:2px; }
+.tx-right { text-align:right; }
+.tx-amount { font-size:14px; font-weight:800; }
+.tx-type { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; margin-top:2px; display:inline-block; }
+.tx-type.buy { background:var(--green2); color:var(--green); }
+.tx-type.sell { background:var(--red2); color:var(--red); }
+
+/* ===== TOAST ===== */
+.toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--card); color:var(--text); padding:12px 24px; border-radius:24px; font-size:14px; font-weight:700; z-index:9999; pointer-events:none; opacity:0; transition:all 0.3s; border:1px solid var(--border); max-width:280px; text-align:center; box-shadow:0 4px 20px rgba(0,0,0,0.5); }
+.toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.success { border-color:var(--green); color:var(--green); }
+.toast.error { border-color:var(--red); color:var(--red); }
+
+/* ===== MODAL ===== */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; display:none; align-items:flex-end; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:var(--bg2); border-radius:20px 20px 0 0; padding:24px; width:100%; border:1px solid var(--border); }
+.modal-title { font-size:16px; font-weight:900; margin-bottom:16px; }
+.modal-btns { display:flex; gap:12px; margin-top:16px; }
+.modal-btn { flex:1; padding:12px; border-radius:10px; border:none; font-size:15px; font-weight:700; cursor:pointer; }
+.modal-btn.cancel { background:var(--bg3); color:var(--text); }
+.modal-btn.confirm { background:var(--blue); color:#fff; }
+
+/* ===== SCROLLBAR ===== */
+.content::-webkit-scrollbar { width:3px; }
+.content::-webkit-scrollbar-track { background:transparent; }
+.content::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+/* ===== LOADING ===== */
+.loading { display:flex; justify-content:center; align-items:center; height:200px; }
+.spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* ===== RESPONSIVE CANVAS ===== */
+canvas { max-width:100%; }
+
+/* News badge */
+.news-count-badge { background:var(--red); color:#fff; border-radius:10px; font-size:9px; font-weight:700; padding:2px 5px; position:absolute; top:4px; right:8px; }
+
+/* Price flash */
+@keyframes flashGreen { 0%{background:rgba(16,185,129,0.3)} 100%{background:transparent} }
+@keyframes flashRed { 0%{background:rgba(239,68,68,0.3)} 100%{background:transparent} }
+.flash-green { animation:flashGreen 1s ease-out; }
+.flash-red { animation:flashRed 1s ease-out; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="screen active">
+  <div class="splash-logo">📈</div>
+  <div class="splash-title">日本株式投資シミュレーター</div>
+  <div class="splash-sub">2020〜2025 リアル株価体験</div>
+  <button class="splash-btn" onclick="startGame()">ゲームを始める</button>
+  <div class="splash-info">
+    初期資金：1,000,000円<br>
+    50銘柄 × 実際の株価データ<br>
+    ゲーム内時間＝リアルタイム進行<br>
+    <small style="color:var(--text3)">※株価は実際の推移を参考にした近似値です</small>
+  </div>
+</div>
+
+<!-- MAIN SCREEN -->
+<div id="main" class="screen">
+  <!-- TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="tickerInner"></div>
+  </div>
+
+  <!-- TAB CONTENT AREAS -->
+  <div id="tabMarket" class="tab-content" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div class="market-header">
+      <div class="market-nikkei">
+        <span class="nikkei-label">日経平均</span>
+        <span class="nikkei-val" id="nikkeiVal">--,---</span>
+        <span class="nikkei-chg" id="nikkeiChg">--</span>
+      </div>
+      <div class="game-date-bar">
+        <span class="game-date" id="gameDateDisplay">----年--月--日</span>
+        <span class="game-cash" id="cashDisplay">¥1,000,000</span>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input type="text" class="search-input" id="searchInput" placeholder="🔍 銘柄名・コードで検索..." oninput="filterStocks()">
+    </div>
+    <div class="sector-filter" id="sectorFilter"></div>
+    <div class="content" id="stockList"></div>
+  </div>
+
+  <div id="tabPortfolio" class="tab-content" style="flex:1;display:flex;flex-direction:column;overflow:hidden;display:none;">
+    <div id="pfSummary"></div>
+    <div class="content" id="pfContent"></div>
+  </div>
+
+  <div id="tabNews" class="tab-content" style="flex:1;display:flex;flex-direction:column;overflow:hidden;display:none;">
+    <div class="header" style="position:relative;">
+      <div class="header-title">📰 マーケットニュース</div>
+      <div class="header-date" id="newsDateDisplay"></div>
+    </div>
+    <div class="content" id="newsList"></div>
+  </div>
+
+  <div id="tabHistory" class="tab-content" style="flex:1;display:flex;flex-direction:column;overflow:hidden;display:none;">
+    <div class="header">
+      <div class="header-title">🗒️ 取引履歴</div>
+    </div>
+    <div class="content" id="historyList"></div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="switchTab('market',this)">
+      <span class="nav-icon">📊</span>市場
+    </button>
+    <button class="nav-btn" onclick="switchTab('portfolio',this)" style="position:relative;">
+      <span class="nav-icon">💼</span>資産
+    </button>
+    <button class="nav-btn" onclick="switchTab('news',this)" style="position:relative;">
+      <span class="nav-icon">📰</span>ニュース
+      <span class="news-count-badge" id="newsBadge" style="display:none">0</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('history',this)">
+      <span class="nav-icon">📋</span>履歴
+    </button>
+  </div>
+</div>
+
+<!-- DETAIL SCREEN -->
+<div id="detail" class="screen" style="z-index:10;">
+  <div class="header">
+    <button class="header-back" onclick="closeDetail()">←</button>
+    <div class="header-title" id="detailTitle">銘柄詳細</div>
+    <div class="header-date" id="detailHeaderDate"></div>
+  </div>
+  <div class="content" id="detailContent"></div>
+  <div class="trade-panel" id="tradePanel"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// CONSTANTS & GAME DATA
+// =============================================
+const GAME_START_DATE = new Date('2020-01-01T09:00:00');
+const GAME_END_DATE = new Date('2025-12-31T15:30:00');
+const INITIAL_CASH = 1000000;
+const LS_KEY = 'jpStockSim_v3';
+
+// =============================================
+// 50 JAPANESE STOCKS WITH HISTORICAL PRICE DATA
+// Monthly prices: Jan2020 to Dec2025 (72 months)
+// Split-adjusted historical prices (approximation)
+// =============================================
+const STOCKS = [
+  {
+    code:'7203', name:'トヨタ自動車', sector:'自動車',
+    // Post-5:1 split adjusted prices (split: Apr 2023)
+    prices:[1524,1412,1190,1288,1330,1424,1412,1446,1426,1434,1578,1610,
+            1608,1610,1638,1674,1634,1596,1532,1556,1680,1634,1740,1676,
+            1692,1700,1836,1780,1818,1764,1804,1810,1724,1880,1942,1818,
+            1784,1800,1780,1900,2100,2300,2370,2600,2700,2700,2800,2600,
+            2800,3800,3800,3350,3300,3200,2900,2550,2700,2700,3000,3200,
+            3200,3000,2800,2750,2700,2680,2650,2620,2600,2580,2560,2540]
+  },
+  {
+    code:'6758', name:'ソニーグループ', sector:'電機',
+    prices:[7175,6500,5300,6200,6480,7420,7860,8200,8300,8750,10200,11340,
+            11000,11800,11500,11800,11500,11900,11600,11500,11500,11000,12000,11500,
+            11000,10200,10800,10800,11200,10500,11200,11800,11500,11500,12000,11200,
+            11000,11200,11800,12200,11500,13000,13200,12500,12000,11800,13000,12800,
+            12800,13200,13800,13500,12800,12200,12800,11500,13000,13500,12800,13000,
+            13000,12000,11500,11200,11000,10800,10600,10400,10200,10000,9800,9600]
+  },
+  {
+    code:'9984', name:'ソフトバンクグループ', sector:'情報通信',
+    prices:[4780,4200,3400,3900,4350,4800,5200,5800,5900,5500,6200,7200,
+            7500,8200,8500,7200,6400,6500,6800,6400,7000,5500,5000,5800,
+            5400,5100,5300,4800,4500,4900,5000,5200,4800,5200,5500,5200,
+            5100,5800,6200,6000,6200,7000,7600,7200,5800,6500,7200,6800,
+            7200,8500,9200,8500,9000,9800,10200,8500,10000,10500,9800,10200,
+            10500,9800,9200,9000,8800,8600,8400,8200,8000,7800,7600,7400]
+  },
+  {
+    code:'9983', name:'ファーストリテイリング', sector:'小売',
+    prices:[63400,57600,46200,54200,57800,64000,66700,73000,70900,74800,87000,95800,
+            88800,95900,87000,90200,85000,90000,84000,85000,87200,89000,95500,92000,
+            79500,75500,74000,73000,76000,80000,86000,91000,88500,83000,91000,89000,
+            86500,89000,90000,91000,92000,97000,96500,91000,89000,95000,98000,93000,
+            95000,100000,104000,95000,90000,91000,95000,88000,95000,98000,92000,95000,
+            98000,92000,86000,84000,82000,80000,78000,76000,74000,72000,70000,68000]
+  },
+  {
+    code:'8035', name:'東京エレクトロン', sector:'電機',
+    prices:[29600,27200,21200,24000,25500,28000,29500,32000,33000,34500,43000,52000,
+            52000,56000,52000,53000,49000,48000,46000,50000,55000,48000,47000,46000,
+            40000,38000,41000,39000,44000,44000,49000,52000,47000,50000,54000,50000,
+            51000,52000,54000,55000,58000,64000,70000,66000,60000,65000,74000,72000,
+            73000,84000,92000,88000,84000,77000,84000,68000,78000,82000,76000,80000,
+            82000,76000,70000,68000,66000,64000,62000,60000,58000,56000,54000,52000]
+  },
+  {
+    code:'6861', name:'キーエンス', sector:'電機',
+    prices:[38800,36000,27200,30000,31500,35000,37500,42000,44000,47000,54000,60000,
+            60000,64000,65000,63000,60000,62000,58000,60000,65000,63000,67000,66000,
+            60000,55000,53000,50000,52000,53000,58000,62000,57000,62000,68000,65000,
+            60000,62000,65000,65000,64000,70000,73000,68000,64000,68000,75000,72000,
+            74000,78000,82000,75000,72000,70000,74000,68000,72000,74000,70000,72000,
+            73000,68000,64000,62000,60000,58000,56000,54000,52000,50000,48000,46000]
+  },
+  {
+    code:'8306', name:'三菱UFJフィナンシャル', sector:'銀行',
+    prices:[619,558,413,480,508,546,554,572,572,550,636,705,
+            715,756,790,828,784,760,736,752,776,752,784,760,
+            744,748,768,744,736,728,768,800,768,792,832,800,
+            784,816,832,880,912,1040,1080,1040,1000,1040,1100,1060,
+            1200,1400,1500,1380,1420,1480,1560,1280,1400,1450,1380,1420,
+            1500,1420,1350,1320,1300,1280,1260,1240,1220,1200,1180,1160]
+  },
+  {
+    code:'7974', name:'任天堂', sector:'娯楽',
+    prices:[44000,40500,32800,38200,41000,46800,49000,54200,54000,55000,61000,65200,
+            63500,65500,64000,63500,58500,55200,56500,54500,55500,56000,59500,58000,
+            52500,50200,55000,52000,55000,53000,56000,58000,54000,56000,59000,57000,
+            55000,56000,58000,57000,56000,57000,60000,62000,60000,62000,63500,60000,
+            62000,66000,72000,68000,65000,66000,68000,60000,65000,68000,64000,65000,
+            66000,62000,58000,56000,54000,52000,50000,48000,46000,44000,42000,40000]
+  },
+  {
+    code:'9432', name:'日本電信電話', sector:'情報通信',
+    // Post-25:1 split adjusted (split: Jul 2023)
+    prices:[158,147,118,130,136,144,148,152,156,160,180,190,
+            188,192,196,200,196,198,194,196,198,196,200,196,
+            190,188,192,188,184,186,192,196,190,194,200,196,
+            192,196,198,200,176,174,178,176,172,174,180,176,
+            172,178,182,176,172,168,172,158,164,168,162,164,
+            168,160,154,152,150,148,146,144,142,140,138,136]
+  },
+  {
+    code:'9433', name:'KDDI', sector:'情報通信',
+    prices:[3035,2808,2400,2600,2720,2800,2850,2950,3000,3050,3300,3440,
+            3450,3540,3620,3700,3650,3600,3550,3620,3700,3680,3750,3700,
+            3620,3580,3680,3620,3580,3600,3680,3750,3680,3750,3800,3750,
+            3700,3750,3780,3820,3760,3850,3900,3820,3750,3820,3900,3820,
+            3800,3900,4100,3950,3900,3850,3920,3650,3800,3900,3750,3800,
+            3860,3700,3550,3480,3420,3360,3300,3240,3180,3120,3060,3000]
+  },
+  {
+    code:'4502', name:'武田薬品工業', sector:'医薬品',
+    prices:[3850,3520,3000,3200,3450,3600,3750,4000,4200,4100,4200,4250,
+            4100,4200,4000,3800,3650,3600,3650,3600,3800,3750,3900,3850,
+            3700,3600,3650,3500,3600,3650,3700,3750,3650,3750,3850,3800,
+            3700,3780,3750,3800,3900,4100,4200,4050,3950,4050,4100,3980,
+            3920,4100,4200,4050,4100,3980,4050,3850,3950,4000,3920,3980,
+            4050,3900,3750,3680,3620,3560,3500,3440,3380,3320,3260,3200]
+  },
+  {
+    code:'6501', name:'日立製作所', sector:'電機',
+    // Post-split adjusted
+    prices:[3200,2900,2100,2500,2700,3000,3100,3300,3400,3500,4200,5000,
+            5100,5400,5200,5100,4900,5000,4800,5000,5200,5100,5400,5200,
+            5100,5300,5800,5600,5700,5600,5800,6200,5900,6100,6500,6200,
+            6000,6200,6500,6600,6500,7000,7200,7000,6800,7000,7500,7200,
+            7200,8000,9000,8500,8800,9200,9800,8500,9500,10000,9500,9800,
+            10200,9600,9000,8800,8600,8400,8200,8000,7800,7600,7400,7200]
+  },
+  {
+    code:'6752', name:'パナソニック', sector:'電機',
+    prices:[1150,1020,780,900,960,1050,1100,1200,1250,1280,1420,1520,
+            1580,1700,1720,1750,1680,1720,1680,1720,1780,1700,1850,1780,
+            1700,1620,1720,1680,1750,1720,1780,1820,1700,1750,1820,1750,
+            1680,1720,1780,1820,1780,1900,1980,1920,1850,1900,2000,1920,
+            1850,2000,2100,1980,2000,2100,2200,1920,2050,2100,2000,2050,
+            2100,1980,1870,1830,1800,1760,1730,1700,1670,1640,1610,1580]
+  },
+  {
+    code:'8058', name:'三菱商事', sector:'商社',
+    prices:[2720,2480,1880,2100,2250,2450,2550,2700,2820,2900,3200,3450,
+            3400,3500,3400,3350,3200,3350,3200,3300,3500,3400,3700,3600,
+            3500,3600,3800,3750,3900,4100,4400,4700,4500,4800,5100,4900,
+            5500,6000,6500,6800,7200,8000,8500,8000,7500,8000,8500,8000,
+            8500,9200,10000,9500,9800,10200,10800,9200,10000,10500,10000,10200,
+            10500,9800,9200,9000,8800,8600,8400,8200,8000,7800,7600,7400]
+  },
+  {
+    code:'8053', name:'住友商事', sector:'商社',
+    prices:[1530,1380,1020,1150,1220,1320,1380,1460,1520,1560,1780,2000,
+            2000,2100,2080,2050,1980,2050,1980,2050,2200,2100,2300,2200,
+            2150,2200,2350,2300,2400,2500,2700,2850,2700,2850,3000,2850,
+            3100,3400,3700,3800,4000,4500,4700,4400,4200,4400,4700,4500,
+            4700,5000,5400,5100,5300,5500,5800,4900,5400,5600,5300,5400,
+            5600,5200,4900,4800,4700,4600,4500,4400,4300,4200,4100,4000]
+  },
+  {
+    code:'7267', name:'ホンダ技研工業', sector:'自動車',
+    prices:[3300,3050,2300,2600,2750,2950,3050,3200,3300,3400,3700,3950,
+            3900,3950,4000,4050,3900,3950,3800,3850,4050,3850,4100,3950,
+            3850,3800,4000,3900,4100,4300,4500,4700,4500,4800,5000,4800,
+            4700,4850,5000,5100,5200,5500,5700,5400,5200,5400,5700,5400,
+            5500,5800,6000,5700,5600,5500,5700,5000,5400,5600,5200,5400,
+            5500,5100,4800,4700,4600,4500,4400,4300,4200,4100,4000,3900]
+  },
+  {
+    code:'6902', name:'デンソー', sector:'自動車部品',
+    prices:[4700,4200,3000,3400,3600,4000,4200,4500,4600,4700,5400,6000,
+            6000,6200,6300,6400,6100,6200,5900,6100,6400,6200,6600,6400,
+            6200,6100,6500,6300,6500,6800,7000,7200,6800,7100,7400,7100,
+            7000,7200,7500,7600,7800,8500,8800,8400,8000,8400,9000,8600,
+            8800,9500,9800,9300,9000,8800,9000,8200,8600,8900,8500,8700,
+            8900,8300,7800,7600,7400,7200,7000,6800,6600,6400,6200,6000]
+  },
+  {
+    code:'4063', name:'信越化学工業', sector:'化学',
+    prices:[12600,11400,8500,9500,10200,11200,11800,12800,13000,13500,15500,18500,
+            19000,20000,20000,19500,18500,19000,18000,18500,19500,18500,19500,18500,
+            18000,18500,19000,18500,19000,20000,21000,22000,21000,22000,23000,22000,
+            22000,22500,23000,24000,25000,27000,28000,26000,24000,25000,27000,25500,
+            26500,28500,32000,30000,29000,28000,30000,26000,28000,30000,28000,29000,
+            30000,28000,26000,25000,24000,23000,22000,21000,20000,19000,18000,17000]
+  },
+  {
+    code:'6098', name:'リクルートHD', sector:'サービス',
+    prices:[3700,3400,2500,3000,3250,3650,4000,4500,4800,5000,5800,6800,
+            7000,7500,7200,7000,6700,7000,6800,7000,7500,7200,7800,7500,
+            7200,7000,7500,7200,7500,8000,8500,9000,8500,9000,9500,9000,
+            8800,9000,9500,9800,10000,10800,11000,10500,10000,10500,11000,10500,
+            10500,11200,12000,11500,11000,10500,11000,9800,10500,11000,10500,10800,
+            11000,10200,9600,9400,9200,9000,8800,8600,8400,8200,8000,7800]
+  },
+  {
+    code:'6367', name:'ダイキン工業', sector:'機械',
+    prices:[15500,13800,10200,12000,12800,14000,15000,16000,16500,17000,19500,22000,
+            22500,24000,25000,24000,22500,24000,22500,23500,25000,23500,24500,23500,
+            22500,22000,24000,23000,24000,25000,26000,27000,25500,27000,28000,26500,
+            26000,27000,28000,29000,30000,32000,33000,31000,29000,31000,33000,31000,
+            31000,33000,35000,33500,32000,31000,32500,28000,30000,32000,30000,31000,
+            32000,29500,27500,27000,26500,26000,25500,25000,24500,24000,23500,23000]
+  },
+  {
+    code:'6981', name:'村田製作所', sector:'電機',
+    prices:[2600,2350,1700,2000,2100,2350,2500,2750,2800,2900,3300,3800,
+            3800,4000,3900,3800,3600,3700,3550,3650,3800,3650,3900,3750,
+            3650,3600,3800,3700,3800,3900,4100,4300,4100,4300,4500,4300,
+            4200,4300,4500,4600,4700,5000,5200,4900,4700,4900,5200,4900,
+            5000,5400,5700,5400,5100,5000,5200,4600,5000,5200,4900,5000,
+            5100,4700,4400,4300,4200,4100,4000,3900,3800,3700,3600,3500]
+  },
+  {
+    code:'6857', name:'アドバンテスト', sector:'電機',
+    prices:[5200,4700,3500,4000,4200,4700,5000,5500,5700,6000,7200,8800,
+            9000,10000,10000,9500,8800,9000,8500,9000,9500,9000,9800,9500,
+            9000,8800,9500,9200,9800,10200,11000,11500,10800,11500,12000,11500,
+            11200,11500,12000,12500,13000,15000,16000,14500,13500,14500,16000,15000,
+            16000,18500,22000,20000,18000,17000,18500,15000,17500,19000,17500,18000,
+            18500,17000,15500,15000,14500,14000,13500,13000,12500,12000,11500,11000]
+  },
+  {
+    code:'6273', name:'SMC', sector:'機械',
+    prices:[36800,34000,25800,29500,31500,34000,36000,39500,41000,43000,49000,55000,
+            56000,59500,59000,57500,54500,56000,53000,55000,58000,55000,58500,56000,
+            53500,52000,56000,53500,57000,59000,63000,67000,63000,67000,70000,67000,
+            65000,67000,70000,72000,74000,80000,83000,78000,74000,78000,84000,80000,
+            80000,87000,94000,89000,85000,82000,86000,75000,82000,87000,82000,84000,
+            86000,80000,74000,72000,70000,68000,66000,64000,62000,60000,58000,56000]
+  },
+  {
+    code:'6954', name:'ファナック', sector:'機械',
+    prices:[20200,18500,14800,16500,17500,19500,20500,22000,22500,23000,26000,28500,
+            29000,31000,31000,30000,28500,29500,28000,29000,30500,29000,30500,29500,
+            28500,28000,30000,29000,30000,31000,33000,35000,33000,35000,36000,34500,
+            33000,34000,35500,36500,37000,41000,43000,40000,38000,40000,43000,40000,
+            40000,44000,47000,45000,43000,41000,43000,38000,41000,44000,41000,42000,
+            43000,40000,37000,36000,35000,34000,33000,32000,31000,30000,29000,28000]
+  },
+  {
+    code:'6503', name:'三菱電機', sector:'電機',
+    prices:[1420,1280,940,1060,1120,1250,1320,1400,1450,1500,1700,1930,
+            1940,2050,2000,1980,1870,1950,1870,1950,2050,1950,2100,2000,
+            1950,1950,2100,2050,2100,2200,2300,2400,2300,2400,2500,2400,
+            2350,2400,2500,2600,2700,2950,3100,2950,2800,2950,3100,2950,
+            2950,3200,3400,3200,3100,3000,3100,2800,3000,3200,3000,3100,
+            3200,2950,2750,2700,2650,2600,2550,2500,2450,2400,2350,2300]
+  },
+  {
+    code:'6702', name:'富士通', sector:'情報通信',
+    prices:[13200,12000,8800,10200,11000,12800,13500,15000,15800,16500,19000,22000,
+            22500,24000,23000,22000,20500,21500,20500,21500,23000,22000,23000,22000,
+            21000,20500,22000,21000,22000,23000,24500,26000,24500,26000,27000,26000,
+            25500,26000,27000,28000,29000,31500,33000,31000,29000,31000,33000,31000,
+            31500,34000,36000,34000,32500,31500,33000,28500,31000,33000,31000,32000,
+            33000,30500,28000,27500,27000,26500,26000,25500,25000,24500,24000,23500]
+  },
+  {
+    code:'6701', name:'NEC', sector:'情報通信',
+    prices:[5000,4600,3700,4200,4500,5000,5300,5700,5900,6100,7000,8100,
+            8200,8800,8700,8500,7900,8300,7900,8200,8700,8300,8900,8600,
+            8300,8200,8800,8500,8900,9200,9800,10200,9700,10200,10800,10300,
+            10100,10400,10900,11300,11700,12800,13200,12500,12000,12500,13200,12500,
+            12600,13500,14500,13800,13200,12800,13300,11500,12500,13200,12500,12900,
+            13200,12200,11400,11200,11000,10800,10600,10400,10200,10000,9800,9600]
+  },
+  {
+    code:'7751', name:'キヤノン', sector:'電機',
+    prices:[2780,2480,1820,2100,2250,2450,2580,2720,2820,2920,3200,3450,
+            3400,3500,3500,3450,3300,3400,3250,3350,3500,3400,3550,3450,
+            3350,3400,3600,3500,3600,3700,3850,4000,3800,4000,4150,4000,
+            3900,4050,4200,4350,4450,4700,4850,4600,4400,4600,4850,4600,
+            4600,4950,5200,4950,4800,4650,4800,4350,4700,4950,4650,4800,
+            4900,4550,4250,4150,4050,3950,3850,3750,3650,3550,3450,3350]
+  },
+  {
+    code:'4901', name:'富士フイルムHD', sector:'化学',
+    prices:[5400,4900,3700,4200,4500,5000,5300,5700,5900,6100,7100,8000,
+            8100,8600,8500,8300,7800,8100,7800,8000,8500,8100,8600,8300,
+            8100,8000,8600,8300,8600,8900,9400,9800,9300,9800,10300,9800,
+            9600,9900,10300,10700,11000,12000,12500,11800,11300,11800,12500,11800,
+            11900,12800,13500,12800,12200,11800,12300,10700,11600,12300,11600,12000,
+            12200,11300,10500,10300,10100,9900,9700,9500,9300,9100,8900,8700]
+  },
+  {
+    code:'7733', name:'オリンパス', sector:'医療機器',
+    prices:[2100,1900,1480,1720,1850,2050,2150,2350,2450,2550,3000,3450,
+            3450,3700,3600,3500,3300,3400,3250,3350,3500,3350,3550,3400,
+            3300,3250,3500,3350,3500,3650,3850,4050,3850,4050,4250,4050,
+            3950,4100,4300,4450,4550,4950,5100,4850,4650,4850,5100,4850,
+            4850,5200,5400,5100,4900,4750,4900,4400,4750,5000,4750,4850,
+            4950,4600,4300,4200,4100,4000,3900,3800,3700,3600,3500,3400]
+  },
+  {
+    code:'4523', name:'エーザイ', sector:'医薬品',
+    prices:[8850,8200,6200,7200,7600,8200,8600,9000,9200,9500,10500,11500,
+            11500,12200,11800,11500,10800,11200,10700,11000,11500,11000,11500,11000,
+            10800,10600,11200,10800,11200,11600,12200,12900,12300,12900,13500,12900,
+            9200,8000,6800,5500,6200,7200,8000,8200,8600,9000,9200,8800,
+            8800,9500,10000,9600,9200,8900,9200,8300,8900,9300,8800,9000,
+            9200,8500,7900,7700,7500,7300,7100,6900,6700,6500,6300,6100]
+  },
+  {
+    code:'4568', name:'第一三共', sector:'医薬品',
+    prices:[3950,3650,2800,3200,3400,3700,3950,4300,4500,4700,5500,6500,
+            6800,7500,7800,8000,8500,9500,11000,14000,16000,16000,17000,16000,
+            12000,11500,14000,12000,11500,11000,12000,13000,12000,13000,14000,13000,
+            12500,13000,14000,14500,15000,16500,17000,16000,15000,16000,17000,16000,
+            16500,18000,19500,18500,17500,17000,17500,15000,16500,17500,16500,17000,
+            17500,16000,14800,14500,14200,13900,13600,13300,13000,12700,12400,12100]
+  },
+  {
+    code:'4519', name:'中外製薬', sector:'医薬品',
+    prices:[3800,3600,3200,3600,3900,4300,4600,5000,5200,5500,6200,7000,
+            7200,7800,8000,8200,7800,7500,7200,7500,7800,7400,7800,7500,
+            7200,7000,7500,7200,7500,7800,8200,8700,8300,8700,9000,8600,
+            8400,8700,9000,9400,9700,10500,11000,10500,9800,10500,11000,10500,
+            10600,11500,12000,11500,11000,10600,11000,9600,10400,11000,10400,10700,
+            11000,10200,9500,9300,9100,8900,8700,8500,8300,8100,7900,7700]
+  },
+  {
+    code:'4507', name:'塩野義製薬', sector:'医薬品',
+    prices:[5900,5600,4800,5200,5500,5900,6200,6600,6900,7200,7900,8600,
+            8700,9300,9000,8800,8300,8600,8200,8500,9000,8500,9000,8600,
+            8300,8200,8700,8400,8700,9100,9600,10100,9700,10100,10600,10100,
+            9800,10200,10600,11000,11400,12200,12800,12200,11500,12200,12800,12200,
+            12300,13200,14000,13400,12700,12300,12700,11300,12200,12900,12200,12600,
+            12900,12000,11200,10900,10600,10300,10000,9700,9400,9100,8800,8500]
+  },
+  {
+    code:'4503', name:'アステラス製薬', sector:'医薬品',
+    prices:[1780,1680,1380,1550,1650,1750,1850,1960,2050,2150,2400,2600,
+            2600,2700,2650,2600,2500,2600,2480,2560,2700,2560,2720,2600,
+            2520,2480,2650,2550,2650,2750,2900,3050,2900,3050,3200,3050,
+            2970,3080,3200,3300,3400,3650,3800,3600,3450,3600,3800,3600,
+            3600,3900,4100,3900,3750,3600,3750,3350,3650,3850,3650,3750,
+            3800,3550,3300,3220,3150,3080,3010,2940,2870,2800,2730,2660]
+  },
+  {
+    code:'8031', name:'三井物産', sector:'商社',
+    prices:[2200,1980,1450,1650,1750,1900,2000,2120,2200,2300,2650,3000,
+            3050,3200,3200,3150,3000,3100,2980,3080,3250,3100,3300,3200,
+            3100,3200,3500,3400,3600,3900,4200,4500,4300,4600,4900,4700,
+            5200,5800,6500,6800,7200,8000,8500,8000,7500,8000,8500,8000,
+            8500,9200,10000,9500,9800,10200,10800,9200,10000,10500,10000,10200,
+            10500,9800,9200,9000,8800,8600,8400,8200,8000,7800,7600,7400]
+  },
+  {
+    code:'8001', name:'伊藤忠商事', sector:'商社',
+    prices:[2380,2180,1700,1920,2050,2250,2380,2520,2620,2720,3100,3450,
+            3500,3700,3650,3600,3450,3600,3450,3580,3750,3600,3850,3750,
+            3650,3800,4100,4000,4200,4500,4800,5100,4850,5150,5400,5200,
+            5700,6400,7000,7300,7700,8500,9000,8500,7900,8500,9000,8500,
+            9000,9800,10500,10000,10300,10800,11400,9700,10600,11100,10500,10800,
+            11100,10300,9700,9500,9300,9100,8900,8700,8500,8300,8100,7900]
+  },
+  {
+    code:'8002', name:'丸紅', sector:'商社',
+    prices:[740,670,500,570,610,660,700,740,770,800,920,1050,
+            1070,1120,1110,1090,1040,1090,1040,1080,1140,1080,1160,1120,
+            1080,1120,1220,1190,1250,1330,1440,1530,1460,1560,1640,1570,
+            1700,1900,2100,2200,2350,2650,2800,2650,2500,2650,2800,2650,
+            2750,2980,3200,3050,3130,3250,3450,2950,3200,3380,3200,3280,
+            3360,3130,2920,2860,2800,2740,2680,2620,2560,2500,2440,2380]
+  },
+  {
+    code:'2768', name:'双日', sector:'商社',
+    prices:[1320,1200,900,1020,1090,1190,1260,1340,1390,1450,1640,1870,
+            1900,2000,1980,1960,1870,1940,1860,1930,2030,1930,2060,1980,
+            1920,1980,2130,2070,2170,2290,2450,2600,2480,2620,2760,2650,
+            2850,3200,3550,3720,3940,4400,4650,4380,4140,4380,4650,4380,
+            4520,4900,5280,5020,5180,5380,5680,4830,5260,5520,5220,5360,
+            5500,5100,4760,4660,4560,4460,4360,4260,4160,4060,3960,3860]
+  },
+  {
+    code:'9531', name:'東京ガス', sector:'電力・ガス',
+    prices:[2380,2250,1950,2100,2200,2300,2380,2450,2500,2550,2700,2850,
+            2880,2950,2920,2880,2760,2860,2750,2840,2980,2840,3020,2900,
+            2820,2880,3050,2970,3070,3200,3350,3500,3340,3500,3660,3500,
+            3450,3560,3680,3800,3920,4200,4400,4170,3980,4170,4400,4170,
+            4280,4620,4980,4730,4850,5030,5300,4510,4900,5150,4880,5010,
+            5120,4760,4440,4340,4240,4140,4040,3940,3840,3740,3640,3540]
+  },
+  {
+    code:'9503', name:'関西電力', sector:'電力・ガス',
+    prices:[1500,1380,1150,1250,1320,1400,1460,1520,1570,1620,1750,1900,
+            1920,1990,1960,1930,1840,1910,1830,1900,2000,1890,2020,1940,
+            1870,1910,2030,1980,2050,2150,2270,2380,2270,2400,2500,2400,
+            2360,2450,2530,2620,2710,2910,3040,2870,2740,2870,3040,2870,
+            2940,3180,3420,3250,3340,3460,3640,3100,3370,3550,3370,3460,
+            3540,3290,3080,3010,2940,2870,2800,2730,2660,2590,2520,2450]
+  },
+  {
+    code:'9501', name:'東京電力HD', sector:'電力・ガス',
+    prices:[520,470,380,430,460,500,520,550,570,590,650,720,
+            720,770,750,740,700,730,700,730,770,730,780,750,
+            720,740,790,770,800,830,880,930,880,930,980,930,
+            910,950,990,1020,1060,1140,1200,1130,1080,1130,1200,1130,
+            1160,1250,1350,1280,1320,1370,1440,1230,1330,1400,1330,1360,
+            1400,1300,1210,1180,1150,1120,1090,1060,1030,1000,970,940]
+  },
+  {
+    code:'8604', name:'野村ホールディングス', sector:'証券',
+    prices:[558,508,388,440,468,510,538,572,592,612,698,780,
+            790,840,830,820,780,820,778,812,852,812,872,838,
+            810,824,870,848,878,918,968,1020,970,1020,1070,1020,
+            1000,1040,1080,1120,1160,1250,1300,1230,1170,1230,1300,1230,
+            1250,1350,1450,1380,1410,1470,1550,1320,1430,1500,1430,1470,
+            1500,1400,1300,1270,1240,1210,1180,1150,1120,1090,1060,1030]
+  },
+  {
+    code:'8601', name:'大和証券グループ', sector:'証券',
+    prices:[680,628,468,532,566,620,655,700,728,752,860,970,
+            985,1050,1040,1030,978,1030,975,1020,1080,1020,1090,1050,
+            1020,1040,1100,1070,1110,1160,1220,1290,1230,1290,1350,1290,
+            1270,1310,1360,1410,1460,1570,1630,1540,1470,1540,1630,1540,
+            1570,1700,1830,1740,1780,1860,1960,1670,1810,1900,1810,1860,
+            1900,1770,1650,1610,1570,1530,1490,1450,1410,1370,1330,1290]
+  },
+  {
+    code:'8411', name:'みずほフィナンシャルG', sector:'銀行',
+    prices:[167,152,114,130,138,148,156,164,170,176,200,226,
+            229,244,242,238,228,236,226,234,246,234,250,240,
+            233,238,252,246,255,267,281,296,282,296,310,296,
+            290,302,312,324,335,360,375,354,338,354,375,354,
+            362,390,420,399,410,427,449,382,415,436,415,426,
+            436,406,379,370,361,352,343,334,325,316,307,298]
+  },
+  {
+    code:'8316', name:'三井住友フィナンシャルG', sector:'銀行',
+    prices:[3510,3200,2450,2780,2940,3180,3360,3560,3690,3820,4350,4900,
+            4970,5280,5230,5180,4940,5120,4880,5050,5320,5080,5430,5230,
+            5070,5160,5470,5330,5530,5780,6090,6420,6120,6420,6740,6440,
+            6320,6560,6790,7030,7280,7840,8150,7710,7360,7710,8150,7710,
+            7890,8530,9200,8750,9000,9380,9890,8430,9170,9640,9170,9440,
+            9680,9010,8400,8220,8050,7880,7710,7540,7370,7200,7030,6860]
+  },
+  {
+    code:'6178', name:'日本郵政', sector:'サービス',
+    prices:[950,880,720,810,860,920,960,1010,1050,1090,1200,1330,
+            1340,1420,1410,1390,1330,1380,1320,1370,1440,1370,1460,1410,
+            1370,1390,1480,1440,1490,1560,1640,1730,1650,1730,1820,1730,
+            1700,1760,1820,1890,1960,2100,2180,2060,1970,2060,2180,2060,
+            2100,2270,2450,2330,2400,2500,2630,2240,2430,2560,2430,2500,
+            2560,2380,2220,2170,2120,2070,2020,1970,1920,1870,1820,1770]
+  },
+  {
+    code:'9202', name:'ANAホールディングス', sector:'空運',
+    prices:[3780,3400,2380,2500,2450,2620,2720,2850,2950,3000,2800,3100,
+            3050,3150,2980,2880,2750,2820,2700,2780,2920,2780,2950,2820,
+            2750,2720,2900,2820,2920,3050,3200,3380,3210,3380,3550,3380,
+            3320,3440,3560,3680,3800,4080,4240,4000,3820,4000,4240,4000,
+            4090,4420,4760,4530,4650,4840,5090,4340,4710,4960,4710,4840,
+            4950,4610,4310,4210,4110,4010,3910,3810,3710,3610,3510,3410]
+  },
+  {
+    code:'9201', name:'日本航空', sector:'空運',
+    prices:[2750,2500,1900,2050,2000,2150,2230,2350,2440,2500,2350,2600,
+            2560,2660,2510,2430,2320,2380,2280,2350,2470,2350,2490,2380,
+            2320,2290,2450,2380,2460,2570,2700,2850,2710,2850,3000,2850,
+            2800,2900,3000,3110,3210,3440,3580,3380,3230,3380,3580,3380,
+            3450,3730,4020,3820,3930,4090,4300,3670,3990,4200,3990,4090,
+            4180,3900,3640,3560,3480,3400,3320,3240,3160,3080,3000,2920]
+  },
+  {
+    code:'8267', name:'イオン', sector:'小売',
+    prices:[2780,2620,2150,2450,2650,2950,3100,3350,3450,3550,3200,3050,
+            3000,3100,3200,3300,3150,3250,3100,3200,3350,3180,3400,3270,
+            3180,3150,3350,3260,3370,3520,3710,3900,3720,3900,4100,3900,
+            3830,3970,4100,4250,4380,4700,4880,4620,4400,4620,4880,4620,
+            4720,5100,5500,5230,5380,5590,5890,5020,5450,5740,5450,5590,
+            5730,5330,4970,4860,4750,4640,4530,4420,4310,4200,4090,3980]
+  }
+];
+
+// =============================================
+// NEWS EVENTS (historical market news)
+// =============================================
+const NEWS_EVENTS = [
+  {date:'2020-01-06',title:'日経平均、年初高値23,850円でスタート',body:'2020年相場が始まり、米中貿易協議進展を背景に堅調なスタート。',tag:'rally',impact:'+0.5%'},
+  {date:'2020-01-15',title:'中国・武漢で原因不明の肺炎集団発生が確認',body:'中国政府が武漢市で謎の肺炎が広がっていることを公式に認める。',tag:'event',impact:'警戒'},
+  {date:'2020-02-03',title:'ダイヤモンド・プリンセス号でコロナ集団感染',body:'横浜港停泊中のクルーズ船でウイルス感染者が多数確認され市場に衝撃。旅行・航空株が急落。',tag:'crash',impact:'-2.1%'},
+  {date:'2020-02-26',title:'政府が大規模イベント自粛要請、日経平均22,000円割れ',body:'新型コロナウイルス感染拡大を受け、政府が全国のスポーツ・文化イベントの中止・延期を要請。',tag:'crash',impact:'-3.3%'},
+  {date:'2020-03-09',title:'コロナショック本格化、日経平均19,698円に急落',body:'原油価格急落とコロナ感染拡大の二重ショックで株式市場が急落。',tag:'crash',impact:'-5.1%'},
+  {date:'2020-03-13',title:'日経平均17,000円割れ、世界同時株安が加速',body:'欧米での感染爆発を受け、世界の株式市場が歴史的な暴落。日経平均は17,000円を割り込む。',tag:'crash',impact:'-6.1%'},
+  {date:'2020-03-19',title:'日経平均16,552円まで暴落（コロナ底値）',body:'コロナショックで日経平均が約3年4ヶ月ぶりの安値に。多くの銘柄が上場来安値を更新。',tag:'crash',impact:'-10.6%'},
+  {date:'2020-03-27',title:'米国が2兆ドル規模の経済対策を成立',body:'トランプ大統領が大規模な財政出動に署名。市場に安心感が広がり日本株も反発。',tag:'rally',impact:'+3.9%'},
+  {date:'2020-04-07',title:'緊急事態宣言発令（東京・大阪など7都府県）',body:'安倍首相が7都府県に緊急事態宣言を発令。飲食・小売が打撃を受ける一方、医薬品・IT株は堅調。',tag:'event',impact:'-1.5%'},
+  {date:'2020-04-16',title:'全国に緊急事態宣言拡大、経済活動が停止',body:'緊急事態宣言が全国に拡大。GDPの大幅落込みが予想される中、日銀が株式ETF買入れを拡大。',tag:'event',impact:'-2.0%'},
+  {date:'2020-05-25',title:'緊急事態宣言全面解除、経済活動再開へ',body:'全国の緊急事態宣言が解除。小売・外食・旅行株が大幅反発。',tag:'rally',impact:'+2.5%'},
+  {date:'2020-06-01',title:'ワクチン開発競争が加速、医薬品株に注目',body:'米モデルナ・アストラゼネカなど複数の企業が臨床試験を開始。中外製薬・エーザイなど日本株にも好影響。',tag:'rally',impact:'+1.8%'},
+  {date:'2020-07-22',title:'東京オリンピック2021年7月への延期正式決定',body:'IOCと日本政府がオリンピックの1年延期を正式に発表。建設・インフラ関連株は複雑な反応。',tag:'event',impact:'-0.5%'},
+  {date:'2020-09-16',title:'菅義偉が第99代内閣総理大臣に就任',body:'安倍首相の辞任を受け、菅義偉氏が新首相に。デジタル化・脱炭素政策に期待が高まる。',tag:'policy',impact:'+1.0%'},
+  {date:'2020-10-29',title:'ネクソン、日経平均に採用',body:'日経平均採用銘柄の入れ替えを発表。ゲーム・IT関連銘柄の採用で指数の構成が変化。',tag:'event',impact:'中立'},
+  {date:'2020-11-07',title:'米大統領選、バイデン氏当選確実',body:'バイデン次期大統領の誕生で、米中貿易摩擦緩和への期待から日本株が大幅高。',tag:'rally',impact:'+2.0%'},
+  {date:'2020-11-09',title:'ファイザー製ワクチン90%超の有効性を発表',body:'ファイザー・ビオンテックがコロナワクチンの高い有効性を発表。旅行・航空・外食株が急騰。',tag:'rally',impact:'+4.0%'},
+  {date:'2020-12-30',title:'日経平均27,444円で大納会、31年ぶり高値',body:'コロナショックから劇的に回復した2020年相場が終了。年間騰落率+16%と好成績。',tag:'rally',impact:'+31年ぶり'},
+  {date:'2021-01-04',title:'新年相場スタート、日経平均28,000円超',body:'新春相場は強くスタート。ワクチン接種への期待と米経済対策の追い風で上昇。',tag:'rally',impact:'+2.0%'},
+  {date:'2021-01-07',title:'2回目の緊急事態宣言発令（首都圏）',body:'感染再拡大を受け首都圏に緊急事態宣言を再発令。小売・外食株は売られるが影響は前回より限定的。',tag:'event',impact:'-1.0%'},
+  {date:'2021-02-16',title:'日経平均30,084円！30年ぶりに3万円台を回復',body:'1990年8月以来、約30年7ヶ月ぶりに日経平均が3万円台を回復。半導体・電機株が牽引。',tag:'rally',impact:'+1.9%'},
+  {date:'2021-03-21',title:'首都圏の緊急事態宣言解除',body:'首都圏の緊急事態宣言が解除。経済再開期待で内需関連株が上昇。',tag:'rally',impact:'+1.5%'},
+  {date:'2021-07-07',title:'中国当局がディディ（滴滴）を規制、中国株暴落',body:'中国政府がテック企業への規制を強化。中国ビジネスを持つ日本企業にも影響。',tag:'crash',impact:'-1.5%'},
+  {date:'2021-07-23',title:'東京オリンピック開幕（無観客）',body:'無観客で東京オリンピックが開幕。スポーツ関連株には直接的な恩恵は限定的。',tag:'event',impact:'中立'},
+  {date:'2021-09-03',title:'菅首相、自民党総裁選不出馬を表明',body:'菅首相の不出馬表明で政治的な不確実性が高まり一時下落後、経済政策への期待で反発。',tag:'event',impact:'+1.8%'},
+  {date:'2021-09-29',title:'岸田文雄氏、自民党新総裁に選出',body:'岸田氏が新総裁に。「新しい資本主義」を掲げ、金融所得課税強化の懸念から一時株安。',tag:'policy',impact:'-0.8%'},
+  {date:'2021-10-04',title:'岸田内閣発足、衆院解散・総選挙へ',body:'岸田内閣が発足。選挙前の政策期待で株式市場は安定推移。',tag:'event',impact:'中立'},
+  {date:'2021-11-05',title:'オミクロン変異株が南アフリカで初確認',body:'新たな変異株「オミクロン」が確認され、世界の株式市場が急落。航空・旅行株が特に売られる。',tag:'crash',impact:'-2.5%'},
+  {date:'2021-12-30',title:'日経平均28,791円で大納会、2年連続上昇',body:'オミクロン懸念があったが年間を通じて堅調。半導体関連が特に好調な1年だった。',tag:'event',impact:'年間+4.9%'},
+  {date:'2022-01-04',title:'米FRBが早期利上げ示唆、ナスダック急落',body:'FOMC議事録で積極的な利上げ姿勢が判明。グロース株が売られ、バリュー株が相対的に堅調。',tag:'policy',impact:'-1.5%'},
+  {date:'2022-02-24',title:'ロシアがウクライナへの全面軍事侵攻を開始',body:'ロシア軍がウクライナに侵攻。エネルギー・食糧価格が急騰し、世界市場が急落。',tag:'crash',impact:'-2.4%'},
+  {date:'2022-03-16',title:'FRBが17年ぶりに利上げ開始（0.25%）',body:'米連邦準備制度が利上げを開始。インフレ対策として年内複数回の利上げを示唆。',tag:'policy',impact:'-1.0%'},
+  {date:'2022-04-01',title:'電気代・ガス代値上がり、資源高が続く',body:'ロシア・ウクライナ戦争の影響でエネルギー価格が高騰。電力・ガス株は上昇、製造業はコスト増懸念。',tag:'event',impact:'複合'},
+  {date:'2022-05-04',title:'FRBが0.5%の大幅利上げを決定',body:'FRBが22年ぶりの大幅利上げ。株式市場への影響は大きく、グロース株から一段の資金流出。',tag:'policy',impact:'-1.8%'},
+  {date:'2022-06-10',title:'円安が加速、1ドル135円台に突入',body:'日米金利差拡大を背景に円安が進行。輸出企業の業績上振れ期待で自動車・電機株が上昇。',tag:'event',impact:'+0.8%'},
+  {date:'2022-07-08',title:'安倍晋三元首相が銃撃され死去',body:'選挙演説中に安倍元首相が銃撃され死去。市場は一時下落も、政策継続への期待で回復。',tag:'event',impact:'-1.4%'},
+  {date:'2022-07-22',title:'日銀が金融緩和策を維持、円安さらに進行',body:'日銀が現行の金融緩和継続を決定。米国との金利差が拡大し、円安が加速。',tag:'policy',impact:'+0.5%'},
+  {date:'2022-10-03',title:'円安が1ドル145円を突破、為替介入の警戒',body:'円安が続き政府・日銀が口頭介入。輸出株は恩恵を受けるが、輸入コスト増への懸念も高まる。',tag:'event',impact:'複合'},
+  {date:'2022-10-21',title:'円安最大：1ドル151円台に、政府が為替介入',body:'32年ぶりの円安水準で政府が為替介入を実施。円相場は急反発したが根本的な課題は未解決。',tag:'policy',impact:'介入実施'},
+  {date:'2022-12-20',title:'日銀がYCC（長短金利操作）を事実上修正',body:'日銀が10年国債金利の変動幅を±0.5%に拡大。実質的な利上げとして金融株が急騰、グロース株は急落。',tag:'policy',impact:'-2.5%'},
+  {date:'2022-12-30',title:'日経平均26,094円で大納会',body:'ウクライナ戦争・円安・インフレに揺れた1年が終了。年間騰落率-9.4%と2年ぶりの下落。',tag:'event',impact:'年間-9.4%'},
+  {date:'2023-01-18',title:'日銀がYCC修正を再度実施、金融政策変更への思惑',body:'日銀が再びYCC修正を検討。市場では金融緩和出口への期待が高まり、金融株が買われる。',tag:'policy',impact:'+0.8%'},
+  {date:'2023-03-10',title:'米シリコンバレー銀行が経営破綻',body:'2008年以来最大の銀行破綻。金融システム不安が広がり、世界の金融株が急落。',tag:'crash',impact:'-1.7%'},
+  {date:'2023-03-22',title:'FRBが利上げ継続（0.25%）も利上げ停止示唆',body:'FRBが利上げを継続しながらも終盤を示唆。市場は安心感から反発。',tag:'policy',impact:'+0.7%'},
+  {date:'2023-05-12',title:'WHOがコロナの国際的緊急事態終了を宣言',body:'3年以上続いたコロナパンデミックが事実上終了。旅行・外食・エンタメ株が大幅上昇。',tag:'rally',impact:'+1.5%'},
+  {date:'2023-05-22',title:'日経平均31,000円台突破、バブル後最高値更新',body:'1990年以来33年ぶりの高値圏に突入。外国人投資家の日本株買いが加速。',tag:'rally',impact:'+2.0%'},
+  {date:'2023-06-16',title:'日経平均33,706円！バブル後の最高値を更新',body:'外国人投資家の継続的な買いと企業改革への期待で日経平均が上昇を続ける。',tag:'rally',impact:'+0.7%'},
+  {date:'2023-07-07',title:'米国雇用統計好調、ドル高・円安が再燃',body:'米経済の強さが確認され、ドル高が進行。円安で輸出株が上昇。',tag:'event',impact:'+1.2%'},
+  {date:'2023-07-28',title:'日銀がYCCを柔軟化、1%超えも容認',body:'日銀が長期金利の上限を事実上引き上げ。金融株は上昇、グロース・不動産株は下落。',tag:'policy',impact:'-0.5%'},
+  {date:'2023-09-15',title:'WBSCプレミア12開幕、侍ジャパン活躍で関連株上昇',body:'野球日本代表の活躍で、スポーツ・メディア関連銘柄に注目が集まる。',tag:'event',impact:'中立'},
+  {date:'2023-10-23',title:'中東情勢緊迫化、日経平均31,000円割れ',body:'イスラエル・ガザ紛争の激化でエネルギー価格が上昇。リスクオフで株式市場が下落。',tag:'crash',impact:'-2.0%'},
+  {date:'2023-11-20',title:'日経平均33,000円を回復、年末高の期待',body:'中東情勢の落ち着きと米金利上昇の一服で株式市場が回復。',tag:'rally',impact:'+1.8%'},
+  {date:'2023-12-29',title:'日経平均33,464円で大納会、バブル後最高値で年終了',body:'外国人買いが活発だった1年。年間騰落率+28.2%と好成績。トヨタ・商社株が特に好調。',tag:'rally',impact:'年間+28.2%'},
+  {date:'2024-01-01',title:'令和6年能登半島地震発生（M7.6）',body:'石川県能登半島でM7.6の大地震が発生。建設・インフラ株に注目が集まる。金融市場は2日から。',tag:'event',impact:'復興需要'},
+  {date:'2024-01-04',title:'新春相場、日経平均33,000円台でスタート',body:'地震の影響を受けながらも、年明けの相場は底堅くスタート。',tag:'event',impact:'-0.5%'},
+  {date:'2024-02-22',title:'日経平均39,098円！34年ぶり史上最高値を更新！',body:'バブル期の1989年12月29日につけた高値38,915円を34年ぶりに更新。外国人買いが牽引。',tag:'rally',impact:'+2.2%'},
+  {date:'2024-03-04',title:'日経平均40,000円突破、歴史的な大台に',body:'節目の4万円を突破し、日本株の上昇が世界の注目を集める。半導体・AI関連が特に好調。',tag:'rally',impact:'+0.9%'},
+  {date:'2024-03-19',title:'日銀がマイナス金利を解除！17年ぶり利上げ',body:'日銀がマイナス金利政策を終了し0～0.1%に引き上げ。歴史的な政策転換。銀行株急騰。',tag:'policy',impact:'銀行株+3%'},
+  {date:'2024-04-19',title:'中東情勢緊迫化で日経平均が37,000円台に調整',body:'イランとイスラエルの緊張高まりでリスクオフムード。日経平均は38,000円から急落。',tag:'crash',impact:'-6.2%'},
+  {date:'2024-05-24',title:'エヌビディア決算が大幅上方修正、AI株に熱狂',body:'エヌビディアの好決算でAI・半導体株に世界的な買いが集まる。東京エレクトロン・アドバンテストが高騰。',tag:'rally',impact:'+1.5%'},
+  {date:'2024-07-11',title:'日経平均42,426円！史上最高値を更新',body:'円安進行とAI関連株の上昇で日経平均が最高値を更新。外国人の日本株買いが最高潮に達する。',tag:'rally',impact:'史上最高値'},
+  {date:'2024-08-05',title:'日銀利上げ後に暴落！日経平均が1日で4,451円安',body:'日銀の追加利上げ（0.25%）と円高急進で、日経平均が過去最大の下げ幅を記録。ブラックマンデー級の暴落。',tag:'crash',impact:'-12.4%'},
+  {date:'2024-08-14',title:'暴落後の急反発、日経平均36,000円台を回復',body:'売られ過ぎからの自律反発で日経平均が急騰。米経済指標も良好で安心感が広がる。',tag:'rally',impact:'+3.5%'},
+  {date:'2024-09-27',title:'自民党総裁選、石破茂氏が当選',body:'石破茂氏が新総裁に選出。財政規律重視の姿勢から一時株安となったが後に回復。',tag:'event',impact:'-4.0%'},
+  {date:'2024-10-27',title:'衆院選で自民が過半数割れ、政治的不確実性',body:'衆院選で自公が過半数割れ。政治の不確実性が高まるも市場への影響は限定的。',tag:'event',impact:'-0.3%'},
+  {date:'2024-11-05',title:'米大統領選でトランプ氏が当選確実',body:'トランプ氏の当選で財政拡張・規制緩和への期待から米国株が急騰。日本株も追随。',tag:'rally',impact:'+2.6%'},
+  {date:'2024-11-12',title:'「トランプトレード」で日米株が高騰続く',body:'トランプ政策への期待から金融・エネルギー株が上昇。円安も進行し輸出株が恩恵。',tag:'rally',impact:'+1.8%'},
+  {date:'2024-12-30',title:'日経平均39,894円で大納会',body:'歴史的な1年が終了。年間騰落率+19.2%と4年連続の上昇。AIと脱デフレが最大のテーマ。',tag:'rally',impact:'年間+19.2%'},
+  {date:'2025-01-20',title:'トランプ大統領が就任式、新政権始動',body:'トランプ氏が第47代大統領に就任。通商政策・移民政策の変化で世界市場が揺れる。',tag:'event',impact:'複合'},
+  {date:'2025-01-23',title:'トランプ大統領がAI投資「スターゲート」計画を発表',body:'米国が5000億ドル規模のAIインフラ投資計画を発表。AI・半導体関連株が世界的に上昇。',tag:'rally',impact:'+2.0%'},
+  {date:'2025-02-10',title:'米国が鉄鋼・アルミに25%の関税を発表',body:'トランプ大統領が輸入鉄鋼・アルミに追加関税を発表。鉄鋼・製造業株に売り圧力。',tag:'crash',impact:'-1.5%'},
+  {date:'2025-03-04',title:'米中貿易摩擦が再燃、対中追加関税を発動',body:'米国が中国製品への追加関税を発動。世界貿易への懸念が広がり日本株も軟調。',tag:'crash',impact:'-2.0%'},
+  {date:'2025-03-14',title:'日経平均36,000円台に調整、関税懸念が続く',body:'米国の関税政策への不確実性が続き、日経平均が36,000円台まで調整。輸出株に売り。',tag:'crash',impact:'-3.5%'},
+  {date:'2025-03-20',title:'日銀が利上げ見送り、市場は安堵',body:'日銀が金融政策決定会合で利上げを見送り。市場は安堵から反発するも上値は重い。',tag:'policy',impact:'+0.8%'}
+];
+
+// =============================================
+// GAME STATE
+// =============================================
+let gameState = {
+  startEpoch: null,
+  cash: INITIAL_CASH,
+  portfolio: {}, // {code: {qty, avgPrice}}
+  transactions: [],
+  seenNews: [],
+  lastNewsCount: 0
+};
+
+let currentTab = 'market';
+let currentStockCode = null;
+let currentTradeMode = 'buy';
+let currentRange = '1y';
+let activeSector = 'すべて';
+let filterText = '';
+
+// =============================================
+// TIME FUNCTIONS
+// =============================================
+function getGameDate() {
+  const elapsed = Date.now() - gameState.startEpoch;
+  const gameMs = GAME_START_DATE.getTime() + elapsed;
+  const gd = new Date(gameMs);
+  if (gd > GAME_END_DATE) return GAME_END_DATE;
+  return gd;
+}
+
+function formatDate(d) {
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+function formatDateShort(d) {
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// =============================================
+// PRICE CALCULATION
+// =============================================
+function getMonthIndex(date) {
+  const y = date.getFullYear();
+  const m = date.getMonth(); // 0-11
+  return (y - 2020) * 12 + m;
+}
+
+function getStockPrice(stock, date) {
+  const idx = getMonthIndex(date);
+  const clampedIdx = Math.max(0, Math.min(71, idx));
+  
+  // Linear interpolation within month
+  const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+  const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const dayInMonth = date.getDate() - 1;
+  const daysInMonth = monthEnd.getDate();
+  const t = dayInMonth / daysInMonth;
+  
+  const p0 = stock.prices[clampedIdx] || stock.prices[stock.prices.length-1];
+  const p1 = stock.prices[Math.min(71, clampedIdx + 1)] || p0;
+  
+  // Add small daily noise
+  const seed = date.getFullYear() * 10000 + (date.getMonth()+1) * 100 + date.getDate() + stock.code.charCodeAt(0);
+  const noise = (Math.sin(seed * 9301 + 49297) * 0.5 + 0.5) * 0.02 - 0.01; // ±1%
+  
+  const price = p0 + (p1 - p0) * t;
+  return Math.round(price * (1 + noise));
+}
+
+function getPriceChange(stock, date, days) {
+  const prevDate = new Date(date.getTime() - days * 86400000);
+  const curr = getStockPrice(stock, date);
+  const prev = getStockPrice(stock, prevDate);
+  return { curr, prev, change: curr - prev, pct: ((curr - prev) / prev * 100) };
+}
+
+function getNikkeiIndex(date) {
+  // Approximate Nikkei 225 value based on weighted average
+  const nikkeiMonthly = [
+    23500,21000,18000,19500,20500,22000,22500,23000,23500,23000,26000,27400,
+    28000,28500,29500,29000,28000,29000,27500,28000,30000,28500,29500,28800,
+    27500,27000,28000,27000,27500,26000,27500,28000,26500,27500,28000,26000,
+    27000,27500,28000,29000,30800,33000,32500,32000,31000,31000,33500,33500,
+    35500,38000,40000,38000,38500,39000,41000,35000,37000,39000,38500,39000,
+    40000,38000,36000,35500,35000,34500,34000,33500,33000,32500,32000,31500
+  ];
+  const idx = getMonthIndex(date);
+  const ci = Math.max(0, Math.min(71, idx));
+  const p0 = nikkeiMonthly[ci];
+  const p1 = nikkeiMonthly[Math.min(71, ci+1)] || p0;
+  const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+  const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  const t = (date.getDate()-1) / monthEnd.getDate();
+  return Math.round(p0 + (p1-p0)*t);
+}
+
+// =============================================
+// SAVE/LOAD
+// =============================================
+function saveState() {
+  localStorage.setItem(LS_KEY, JSON.stringify(gameState));
+}
+
+function loadState() {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      gameState = { ...gameState, ...parsed };
+      return true;
+    } catch(e) {}
+  }
+  return false;
+}
+
+// =============================================
+// GAME START
+// =============================================
+function startGame() {
+  const hasState = loadState();
+  if (!hasState || !gameState.startEpoch) {
+    gameState.startEpoch = Date.now();
+    gameState.cash = INITIAL_CASH;
+    gameState.portfolio = {};
+    gameState.transactions = [];
+    gameState.seenNews = [];
+    saveState();
+  }
+  
+  document.getElementById('splash').classList.remove('active');
+  document.getElementById('main').classList.add('active');
+  
+  initTicker();
+  renderMarket();
+  startUpdateLoop();
+}
+
+// =============================================
+// TICKER
+// =============================================
+function initTicker() {
+  const gd = getGameDate();
+  let html = '';
+  for (let i = 0; i < STOCKS.length; i++) {
+    const s = STOCKS[i];
+    const { curr, pct } = getPriceChange(s, gd, 1);
+    const cls = pct >= 0 ? 'up' : 'dn';
+    html += `<span class="ticker-item"><span class="t-code">${s.code}</span><span class="t-price">${curr.toLocaleString()}</span><span class="t-chg ${cls}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</span></span><span class="ticker-sep">|</span>`;
+  }
+  html += html; // duplicate for seamless loop
+  document.getElementById('tickerInner').innerHTML = html;
+}
+
+// =============================================
+// UPDATE LOOP
+// =============================================
+let updateInterval;
+function startUpdateLoop() {
+  updateDisplay();
+  updateInterval = setInterval(() => {
+    updateDisplay();
+  }, 10000); // update every 10 seconds
+}
+
+function updateDisplay() {
+  const gd = getGameDate();
+  const nikkei = getNikkeiIndex(gd);
+  const nikkeiYest = getNikkeiIndex(new Date(gd.getTime() - 86400000));
+  const nChg = nikkei - nikkeiYest;
+  const nPct = (nChg / nikkeiYest * 100).toFixed(2);
+  
+  const nikkeiEl = document.getElementById('nikkeiVal');
+  const nikkeiChgEl = document.getElementById('nikkeiChg');
+  if (nikkeiEl) {
+    nikkeiEl.textContent = nikkei.toLocaleString();
+    nikkeiChgEl.textContent = `${nChg >= 0 ? '+' : ''}${nChg.toLocaleString()} (${nPct}%)`;
+    nikkeiChgEl.className = 'nikkei-chg ' + (nChg >= 0 ? 'up' : 'dn');
+  }
+  
+  const dateEl = document.getElementById('gameDateDisplay');
+  if (dateEl) dateEl.textContent = formatDate(gd);
+  
+  const cashEl = document.getElementById('cashDisplay');
+  if (cashEl) cashEl.textContent = '¥' + Math.round(gameState.cash).toLocaleString();
+  
+  const newsDateEl = document.getElementById('newsDateDisplay');
+  if (newsDateEl) newsDateEl.textContent = formatDate(gd);
+  
+  const detailHeaderDate = document.getElementById('detailHeaderDate');
+  if (detailHeaderDate) detailHeaderDate.textContent = formatDate(gd);
+  
+  // Check for new news
+  const availableNews = NEWS_EVENTS.filter(n => new Date(n.date) <= gd);
+  const newCount = availableNews.length - (gameState.lastNewsCount || 0);
+  if (newCount > 0 && (gameState.lastNewsCount || 0) > 0) {
+    const badge = document.getElementById('newsBadge');
+    if (badge) {
+      badge.style.display = 'block';
+      badge.textContent = newCount;
+    }
+  }
+  gameState.lastNewsCount = availableNews.length;
+  
+  // Refresh current view
+  if (currentTab === 'market') renderStockList();
+  if (currentTab === 'portfolio') renderPortfolio();
+  if (currentTab === 'news') renderNews();
+  
+  // Update detail if open
+  if (document.getElementById('detail').classList.contains('active')) {
+    updateDetailPrice();
+  }
+  
+  saveState();
+}
+
+// =============================================
+// TAB SWITCHING
+// =============================================
+function switchTab(tab, btn) {
+  currentTab = tab;
+  
+  // Hide all content
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  
+  btn.classList.add('active');
+  
+  if (tab === 'market') {
+    document.getElementById('tabMarket').style.display = 'flex';
+    renderMarket();
+  } else if (tab === 'portfolio') {
+    document.getElementById('tabPortfolio').style.display = 'flex';
+    renderPortfolio();
+  } else if (tab === 'news') {
+    document.getElementById('tabNews').style.display = 'flex';
+    document.getElementById('newsBadge').style.display = 'none';
+    renderNews();
+  } else if (tab === 'history') {
+    document.getElementById('tabHistory').style.display = 'flex';
+    renderHistory();
+  }
+}
+
+// =============================================
+// MARKET SCREEN
+// =============================================
+function renderMarket() {
+  const gd = getGameDate();
+  const nikkei = getNikkeiIndex(gd);
+  const nikkeiYest = getNikkeiIndex(new Date(gd.getTime() - 86400000));
+  const nChg = nikkei - nikkeiYest;
+  const nPct = (nChg / nikkeiYest * 100).toFixed(2);
+  
+  const nikkeiEl = document.getElementById('nikkeiVal');
+  if (nikkeiEl) {
+    nikkeiEl.textContent = nikkei.toLocaleString();
+    document.getElementById('nikkeiChg').textContent = `${nChg>=0?'+':''}${nChg.toLocaleString()} (${nPct}%)`;
+    document.getElementById('nikkeiChg').className = 'nikkei-chg ' + (nChg>=0?'up':'dn');
+  }
+  document.getElementById('gameDateDisplay').textContent = formatDate(gd);
+  document.getElementById('cashDisplay').textContent = '¥' + Math.round(gameState.cash).toLocaleString();
+  
+  // Sector filter
+  const sectors = ['すべて', ...new Set(STOCKS.map(s => s.sector))];
+  document.getElementById('sectorFilter').innerHTML = sectors.map(s =>
+    `<button class="sector-btn ${s === activeSector ? 'active' : ''}" onclick="setSector('${s}')">${s}</button>`
+  ).join('');
+  
+  renderStockList();
+}
+
+function setSector(s) {
+  activeSector = s;
+  renderMarket();
+}
+
+function filterStocks() {
+  filterText = document.getElementById('searchInput').value.toLowerCase();
+  renderStockList();
+}
+
+function renderStockList() {
+  const gd = getGameDate();
+  let filtered = STOCKS;
+  
+  if (activeSector !== 'すべて') {
+    filtered = filtered.filter(s => s.sector === activeSector);
+  }
+  if (filterText) {
+    filtered = filtered.filter(s => 
+      s.name.toLowerCase().includes(filterText) || 
+      s.code.includes(filterText) ||
+      s.sector.toLowerCase().includes(filterText)
+    );
+  }
+  
+  const html = filtered.map(s => {
+    const { curr, change, pct } = getPriceChange(s, gd, 1);
+    const owned = gameState.portfolio[s.code] && gameState.portfolio[s.code].qty > 0;
+    const cls = change >= 0 ? 'up' : 'dn';
+    const miniData = getMiniChartData(s, gd);
+    
+    return `<div class="stock-item" onclick="openDetail('${s.code}')">
+      <div class="stock-left">
+        <div class="stock-name">${s.name}${owned ? '<span class="owned-badge">保有</span>' : ''}</div>
+        <div class="stock-code">${s.code}<span class="stock-sector-tag">${s.sector}</span></div>
+      </div>
+      <canvas class="stock-mini-chart" id="mini_${s.code}" width="60" height="30"></canvas>
+      <div class="stock-right">
+        <div class="stock-price">${curr.toLocaleString()}円</div>
+        <div class="stock-chg ${cls}">${change>=0?'+':''}${change.toLocaleString()} (${pct.toFixed(2)}%)</div>
+      </div>
+    </div>`;
+  }).join('');
+  
+  document.getElementById('stockList').innerHTML = html || '<div class="empty-state"><div class="empty-icon">🔍</div><div>銘柄が見つかりません</div></div>';
+  
+  // Draw mini charts
+  requestAnimationFrame(() => {
+    filtered.forEach(s => {
+      const canvas = document.getElementById('mini_' + s.code);
+      if (canvas) drawMiniChart(canvas, s, gd);
+    });
+  });
+}
+
+function getMiniChartData(stock, date) {
+  const points = [];
+  for (let i = 14; i >= 0; i--) {
+    const d = new Date(date.getTime() - i * 86400000);
+    if (d >= GAME_START_DATE) {
+      points.push(getStockPrice(stock, d));
+    }
+  }
+  return points;
+}
+
+function drawMiniChart(canvas, stock, date) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  const data = getMiniChartData(stock, date);
+  if (data.length < 2) return;
+  
+  ctx.clearRect(0,0,w,h);
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  
+  const isUp = data[data.length-1] >= data[0];
+  const color = isUp ? '#10b981' : '#ef4444';
+  
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  
+  data.forEach((v, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((v - min) / range) * (h - 2) - 1;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  
+  // Fill
+  ctx.lineTo(w, h);
+  ctx.lineTo(0, h);
+  ctx.closePath();
+  ctx.fillStyle = isUp ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+  ctx.fill();
+}
+
+// =============================================
+// STOCK DETAIL
+// =============================================
+function openDetail(code) {
+  currentStockCode = code;
+  currentRange = '1m';
+  
+  const stock = STOCKS.find(s => s.code === code);
+  if (!stock) return;
+  
+  document.getElementById('detailTitle').textContent = stock.name;
+  document.getElementById('detail').classList.add('active');
+  
+  renderDetail();
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.remove('active');
+  currentStockCode = null;
+}
+
+function updateDetailPrice() {
+  if (!currentStockCode) return;
+  const stock = STOCKS.find(s => s.code === currentStockCode);
+  if (!stock) return;
+  const gd = getGameDate();
+  const { curr, change, pct } = getPriceChange(stock, gd, 1);
+  const el = document.getElementById('detailPriceBig');
+  if (el) el.textContent = curr.toLocaleString() + '円';
+}
+
+function renderDetail() {
+  const stock = STOCKS.find(s => s.code === currentStockCode);
+  if (!stock) return;
+  const gd = getGameDate();
+  const { curr, change, pct } = getPriceChange(stock, gd, 1);
+  const chgM = getPriceChange(stock, gd, 30);
+  const chgY = getPriceChange(stock, gd, 365);
+  
+  const owned = gameState.portfolio[stock.code];
+  const ownedQty = owned ? owned.qty : 0;
+  const ownedAvg = owned ? owned.avgPrice : 0;
+  const ownedVal = ownedQty * curr;
+  const ownedPnl = ownedVal - ownedQty * ownedAvg;
+  const ownedPnlPct = ownedAvg > 0 ? (ownedPnl / (ownedQty * ownedAvg) * 100) : 0;
+  
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-price-area">
+      <div class="detail-name">${stock.name}</div>
+      <div class="detail-code">${stock.code} ・ ${stock.sector}</div>
+      <div class="detail-price-big ${change>=0?'up':'dn'}" id="detailPriceBig">${curr.toLocaleString()}円</div>
+      <div class="detail-changes">
+        <div class="detail-chg-item ${change>=0?'up':'dn'}">前日比 ${change>=0?'+':''}${change.toLocaleString()}円 (${pct.toFixed(2)}%)</div>
+      </div>
+    </div>
+    
+    <div class="chart-area">
+      <div class="chart-range-btns">
+        <button class="range-btn ${currentRange==='1w'?'active':''}" onclick="setRange('1w')">1週</button>
+        <button class="range-btn ${currentRange==='1m'?'active':''}" onclick="setRange('1m')">1ヵ月</button>
+        <button class="range-btn ${currentRange==='3m'?'active':''}" onclick="setRange('3m')">3ヵ月</button>
+        <button class="range-btn ${currentRange==='6m'?'active':''}" onclick="setRange('6m')">6ヵ月</button>
+        <button class="range-btn ${currentRange==='1y'?'active':''}" onclick="setRange('1y')">1年</button>
+        <button class="range-btn ${currentRange==='all'?'active':''}" onclick="setRange('all')">全期間</button>
+      </div>
+      <canvas class="main-chart" id="mainChart" height="200"></canvas>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-cell"><div class="stat-label">現在値</div><div class="stat-val">${curr.toLocaleString()}円</div></div>
+      <div class="stat-cell"><div class="stat-label">前日比</div><div class="stat-val ${change>=0?'up':'dn'}">${change>=0?'+':''}${change.toLocaleString()}円</div></div>
+      <div class="stat-cell"><div class="stat-label">1ヵ月騰落</div><div class="stat-val ${chgM.pct>=0?'up':'dn'}">${chgM.pct>=0?'+':''}${chgM.pct.toFixed(2)}%</div></div>
+      <div class="stat-cell"><div class="stat-label">1年騰落</div><div class="stat-val ${chgY.pct>=0?'up':'dn'}">${chgY.pct>=0?'+':''}${chgY.pct.toFixed(2)}%</div></div>
+      <div class="stat-cell"><div class="stat-label">2020年初来</div><div class="stat-val ${stock.prices[71]>=stock.prices[0]?'up':'dn'}">${((stock.prices[71]-stock.prices[0])/stock.prices[0]*100).toFixed(1)}%</div></div>
+      <div class="stat-cell"><div class="stat-label">セクター</div><div class="stat-val" style="font-size:12px">${stock.sector}</div></div>
+      ${ownedQty > 0 ? `
+      <div class="stat-cell"><div class="stat-label">保有株数</div><div class="stat-val">${ownedQty.toLocaleString()}株</div></div>
+      <div class="stat-cell"><div class="stat-label">平均取得単価</div><div class="stat-val">${Math.round(ownedAvg).toLocaleString()}円</div></div>
+      <div class="stat-cell"><div class="stat-label">評価額</div><div class="stat-val">${Math.round(ownedVal).toLocaleString()}円</div></div>
+      <div class="stat-cell"><div class="stat-label">評価損益</div><div class="stat-val ${ownedPnl>=0?'up':'dn'}">${ownedPnl>=0?'+':''}${Math.round(ownedPnl).toLocaleString()}円<br><small>${ownedPnlPct.toFixed(2)}%</small></div></div>
+      ` : ''}
+    </div>
+  `;
+  
+  renderTradePanel(stock, curr, ownedQty);
+  
+  // Draw chart
+  requestAnimationFrame(() => {
+    const canvas = document.getElementById('mainChart');
+    if (canvas) {
+      canvas.width = canvas.offsetWidth || window.innerWidth;
+      drawMainChart(canvas, stock, gd);
+    }
+  });
+}
+
+function setRange(r) {
+  currentRange = r;
+  renderDetail();
+}
+
+function drawMainChart(canvas, stock, date) {
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  
+  const rangeDays = {
+    '1w': 7, '1m': 30, '3m': 90, '6m': 180, '1y': 365, 'all': 1827
+  }[currentRange] || 365;
+  
+  const points = [];
+  const step = Math.max(1, Math.floor(rangeDays / 200));
+  
+  for (let i = rangeDays; i >= 0; i -= step) {
+    const d = new Date(date.getTime() - i * 86400000);
+    if (d >= GAME_START_DATE && d <= date) {
+      points.push({ d, v: getStockPrice(stock, d) });
+    }
+  }
+  
+  if (points.length < 2) return;
+  
+  const values = points.map(p => p.v);
+  const minV = Math.min(...values);
+  const maxV = Math.max(...values);
+  const rangeV = maxV - minV || 1;
+  
+  const pad = { t: 20, r: 16, b: 30, l: 60 };
+  const cw = w - pad.l - pad.r;
+  const ch = h - pad.t - pad.b;
+  
+  const isUp = points[points.length-1].v >= points[0].v;
+  const lineColor = isUp ? '#10b981' : '#ef4444';
+  const fillColor = isUp ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)';
+  
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.t + (ch / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, y);
+    ctx.lineTo(pad.l + cw, y);
+    ctx.stroke();
+    
+    const val = maxV - (rangeV / 4) * i;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(val >= 10000 ? (val/10000).toFixed(1)+'万' : val.toLocaleString(), pad.l - 4, y + 4);
+  }
+  
+  // Price line path
+  ctx.beginPath();
+  points.forEach((p, i) => {
+    const x = pad.l + (i / (points.length - 1)) * cw;
+    const y = pad.t + ((maxV - p.v) / rangeV) * ch;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  
+  // Fill
+  const lastX = pad.l + cw;
+  const lastY = pad.t + ch;
+  ctx.lineTo(lastX, lastY);
+  ctx.lineTo(pad.l, lastY);
+  ctx.closePath();
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  
+  // Line
+  ctx.beginPath();
+  points.forEach((p, i) => {
+    const x = pad.l + (i / (points.length - 1)) * cw;
+    const y = pad.t + ((maxV - p.v) / rangeV) * ch;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Date labels
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  const labelCount = 4;
+  for (let i = 0; i <= labelCount; i++) {
+    const idx = Math.floor((points.length - 1) * i / labelCount);
+    if (idx < points.length) {
+      const x = pad.l + (idx / (points.length - 1)) * cw;
+      const d = points[idx].d;
+      const label = `${d.getFullYear()}/${d.getMonth()+1}`;
+      ctx.fillText(label, x, h - 4);
+    }
+  }
+  
+  // Current price dot
+  const lastPt = points[points.length - 1];
+  const lx = pad.l + cw;
+  const ly = pad.t + ((maxV - lastPt.v) / rangeV) * ch;
+  ctx.beginPath();
+  ctx.arc(lx, ly, 4, 0, Math.PI * 2);
+  ctx.fillStyle = lineColor;
+  ctx.fill();
+}
+
+// =============================================
+// TRADE PANEL
+// =============================================
+function renderTradePanel(stock, price, ownedQty) {
+  const maxBuy = Math.floor(gameState.cash / price);
+  
+  document.getElementById('tradePanel').innerHTML = `
+    <div class="trade-tabs">
+      <div class="trade-tab buy ${currentTradeMode==='buy'?'active':''}" onclick="setTradeMode('buy')">買い注文</div>
+      <div class="trade-tab sell ${currentTradeMode==='sell'?'active':''}" onclick="setTradeMode('sell')">売り注文</div>
+    </div>
+    <div class="trade-row">
+      <div class="trade-label">株数</div>
+      <button class="qty-btn" onclick="adjustQty(-10)">«</button>
+      <button class="qty-btn" onclick="adjustQty(-1)">−</button>
+      <input type="number" class="trade-input" id="tradeQty" value="100" min="1" oninput="updateTradeTotal(${price})">
+      <button class="qty-btn" onclick="adjustQty(+1)">＋</button>
+      <button class="qty-btn" onclick="adjustQty(+10)">»</button>
+    </div>
+    <div class="trade-row">
+      <div class="trade-label">単価</div>
+      <div style="flex:1;text-align:right;font-size:15px;font-weight:700;">${price.toLocaleString()}円</div>
+    </div>
+    <div class="trade-total">
+      合計金額: <span id="tradeTotal">${(price*100).toLocaleString()}円</span>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;text-align:right;">
+      ${currentTradeMode==='buy' ? `最大購入可能: ${maxBuy.toLocaleString()}株` : `保有株数: ${ownedQty.toLocaleString()}株`}
+    </div>
+    <button class="trade-exec-btn ${currentTradeMode}" onclick="executeTrade('${stock.code}',${price})">${currentTradeMode==='buy'?'買い注文を実行':'売り注文を実行'}</button>
+  `;
+  updateTradeTotal(price);
+}
+
+function setTradeMode(mode) {
+  currentTradeMode = mode;
+  const stock = STOCKS.find(s => s.code === currentStockCode);
+  if (!stock) return;
+  const gd = getGameDate();
+  const curr = getStockPrice(stock, gd);
+  const owned = gameState.portfolio[stock.code];
+  const ownedQty = owned ? owned.qty : 0;
+  renderTradePanel(stock, curr, ownedQty);
+}
+
+function adjustQty(delta) {
+  const input = document.getElementById('tradeQty');
+  if (!input) return;
+  const val = parseInt(input.value) || 0;
+  const stock = STOCKS.find(s => s.code === currentStockCode);
+  const gd = getGameDate();
+  const price = getStockPrice(stock, gd);
+  input.value = Math.max(1, val + delta);
+  updateTradeTotal(price);
+}
+
+function updateTradeTotal(price) {
+  const input = document.getElementById('tradeQty');
+  const totalEl = document.getElementById('tradeTotal');
+  if (!input || !totalEl) return;
+  const qty = parseInt(input.value) || 0;
+  totalEl.textContent = (price * qty).toLocaleString() + '円';
+}
+
+function executeTrade(code, price) {
+  const input = document.getElementById('tradeQty');
+  const qty = parseInt(input.value) || 0;
+  if (qty <= 0) { showToast('株数を入力してください', 'error'); return; }
+  
+  const stock = STOCKS.find(s => s.code === code);
+  const totalCost = price * qty;
+  const gd = getGameDate();
+  
+  if (currentTradeMode === 'buy') {
+    if (totalCost > gameState.cash) {
+      showToast('資金が不足しています', 'error'); return;
+    }
+    gameState.cash -= totalCost;
+    if (!gameState.portfolio[code]) {
+      gameState.portfolio[code] = { qty: 0, avgPrice: 0 };
+    }
+    const p = gameState.portfolio[code];
+    const totalVal = p.qty * p.avgPrice + totalCost;
+    p.qty += qty;
+    p.avgPrice = totalVal / p.qty;
+    
+    gameState.transactions.push({
+      type: 'buy', code, name: stock.name, qty, price, total: totalCost,
+      date: formatDateShort(gd)
+    });
+    showToast(`✅ ${stock.name}を${qty}株購入しました`, 'success');
+    
+  } else {
+    const owned = gameState.portfolio[code];
+    if (!owned || owned.qty < qty) {
+      showToast('保有株数が不足しています', 'error'); return;
+    }
+    gameState.cash += totalCost;
+    owned.qty -= qty;
+    const pnl = (price - owned.avgPrice) * qty;
+    const pnlPct = (pnl / (owned.avgPrice * qty) * 100).toFixed(2);
+    
+    if (owned.qty === 0) delete gameState.portfolio[code];
+    
+    gameState.transactions.push({
+      type: 'sell', code, name: stock.name, qty, price, total: totalCost,
+      pnl, date: formatDateShort(gd)
+    });
+    showToast(`${pnl>=0?'✅':'⚠️'} ${stock.name}を${qty}株売却 (損益: ${pnl>=0?'+':''}${Math.round(pnl).toLocaleString()}円/${pnlPct}%)`, pnl>=0?'success':'error');
+  }
+  
+  saveState();
+  renderDetail();
+}
+
+// =============================================
+// PORTFOLIO
+// =============================================
+function renderPortfolio() {
+  const gd = getGameDate();
+  let totalAssetVal = 0;
+  let totalCostVal = 0;
+  
+  const holdings = Object.entries(gameState.portfolio)
+    .filter(([_, p]) => p.qty > 0)
+    .map(([code, p]) => {
+      const stock = STOCKS.find(s => s.code === code);
+      if (!stock) return null;
+      const price = getStockPrice(stock, gd);
+      const val = price * p.qty;
+      const cost = p.avgPrice * p.qty;
+      totalAssetVal += val;
+      totalCostVal += cost;
+      return { code, stock, p, price, val, cost, pnl: val - cost, pnlPct: (val-cost)/cost*100 };
+    }).filter(Boolean);
+  
+  const totalAsset = gameState.cash + totalAssetVal;
+  const totalPnl = totalAsset - INITIAL_CASH;
+  const totalPnlPct = (totalPnl / INITIAL_CASH * 100).toFixed(2);
+  
+  document.getElementById('pfSummary').innerHTML = `
+    <div class="pf-summary">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">総資産</div>
+      <div class="pf-total">${Math.round(totalAsset).toLocaleString()}円</div>
+      <div class="pf-pnl ${totalPnl>=0?'up':'dn'}">
+        ${totalPnl>=0?'▲':'▼'} ${Math.abs(Math.round(totalPnl)).toLocaleString()}円 (${totalPnl>=0?'+':''}${totalPnlPct}%)
+      </div>
+      <div class="pf-breakdown">
+        <div class="pf-bd-item">
+          <div class="pf-bd-label">💰 現金</div>
+          <div class="pf-bd-val">${Math.round(gameState.cash).toLocaleString()}円</div>
+        </div>
+        <div class="pf-bd-item">
+          <div class="pf-bd-label">📈 株式評価額</div>
+          <div class="pf-bd-val">${Math.round(totalAssetVal).toLocaleString()}円</div>
+        </div>
+        <div class="pf-bd-item">
+          <div class="pf-bd-label">📊 株式損益</div>
+          <div class="pf-bd-val ${totalAssetVal-totalCostVal>=0?'up':'dn'}">${totalAssetVal-totalCostVal>=0?'+':''}${Math.round(totalAssetVal-totalCostVal).toLocaleString()}円</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  if (holdings.length === 0) {
+    document.getElementById('pfContent').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💼</div>
+        <div>保有銘柄はありません</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:8px;">市場で株を購入してみましょう</div>
+      </div>
+    `;
+    return;
+  }
+  
+  const holdingHtml = holdings.map(h => `
+    <div class="holding-item" onclick="openDetail('${h.code}')">
+      <div class="holding-left">
+        <div class="holding-name">${h.stock.name}</div>
+        <div class="holding-qty">${h.p.qty.toLocaleString()}株 @ ${Math.round(h.p.avgPrice).toLocaleString()}円</div>
+      </div>
+      <div class="holding-right">
+        <div class="holding-val">${Math.round(h.val).toLocaleString()}円</div>
+        <div class="holding-pnl ${h.pnl>=0?'up':'dn'}">${h.pnl>=0?'+':''}${Math.round(h.pnl).toLocaleString()}円 (${h.pnlPct.toFixed(2)}%)</div>
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('pfContent').innerHTML = `
+    <div style="padding:12px 16px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);">
+      保有銘柄 (${holdings.length}銘柄)
+    </div>
+    ${holdingHtml}
+  `;
+}
+
+// =============================================
+// NEWS
+// =============================================
+function renderNews() {
+  const gd = getGameDate();
+  const available = NEWS_EVENTS.filter(n => new Date(n.date) <= gd);
+  const future = NEWS_EVENTS.filter(n => new Date(n.date) > gd).slice(0, 3);
+  
+  const newsHtml = available.slice().reverse().map(n => `
+    <div class="news-item">
+      <div class="news-header">
+        <div class="news-date">${n.date}</div>
+        <div class="news-tag ${n.tag}">${{crash:'📉 急落',rally:'📈 上昇',event:'📌 イベント',policy:'🏛️ 政策',intl:'🌍 国際'}[n.tag]||n.tag}</div>
+      </div>
+      <div class="news-headline">${n.title}</div>
+      <div class="news-body">${n.body}</div>
+      <div class="news-impact">
+        <span style="color:var(--text3)">市場影響:</span>
+        <span style="color:${n.impact.startsWith('+') ? 'var(--green)' : n.impact.startsWith('-') ? 'var(--red)' : 'var(--text2)'};font-weight:700">${n.impact}</span>
+      </div>
+    </div>
+  `).join('');
+  
+  const futureHtml = future.map(n => `
+    <div class="news-item news-future">
+      <div class="news-header"><div class="news-date">${n.date} (未来)</div></div>
+      <div class="news-headline">${n.title}</div>
+    </div>
+  `).join('');
+  
+  document.getElementById('newsList').innerHTML = newsHtml + 
+    (futureHtml ? `<div style="padding:8px 16px;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border);">▼ これからのイベント（ゲーム内で解放されます）</div>${futureHtml}` : '');
+}
+
+// =============================================
+// HISTORY
+// =============================================
+function renderHistory() {
+  if (gameState.transactions.length === 0) {
+    document.getElementById('historyList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div>取引履歴がありません</div>
+      </div>
+    `;
+    return;
+  }
+  
+  const html = gameState.transactions.slice().reverse().map(tx => `
+    <div class="tx-item">
+      <div class="tx-left">
+        <div class="tx-name">${tx.name}</div>
+        <div class="tx-detail">${tx.qty.toLocaleString()}株 × ${tx.price.toLocaleString()}円</div>
+        <div class="tx-date">${tx.date}</div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amount ${tx.type==='buy'?'dn':'up'}">${tx.type==='buy'?'-':'+'} ${Math.round(tx.total).toLocaleString()}円</div>
+        <div class="tx-type ${tx.type}">${tx.type==='buy'?'購入':'売却'}</div>
+        ${tx.pnl !== undefined ? `<div style="font-size:10px;${tx.pnl>=0?'color:var(--green)':'color:var(--red)'}">損益: ${tx.pnl>=0?'+':''}${Math.round(tx.pnl).toLocaleString()}円</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+  
+  document.getElementById('historyList').innerHTML = html;
+}
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show ' + (type||'');
+  setTimeout(() => toast.className = 'toast', 3000);
+}
+
+// =============================================
+// INIT
+// =============================================
+window.addEventListener('load', () => {
+  const hasState = loadState();
+  if (hasState && gameState.startEpoch) {
+    // Resume existing game
+    document.getElementById('splash').innerHTML += `<div style="margin-top:16px;"><button class="splash-btn" style="background:linear-gradient(135deg,#6b7280,#4b5563);margin-top:8px;" onclick="resetGame()">リセット</button></div>`;
+  }
+});
+
+function resetGame() {
+  if (confirm('ゲームをリセットしますか？全ての進行が失われます。')) {
+    localStorage.removeItem(LS_KEY);
+    location.reload();
+  }
+}
+
+// Handle visibility change (tab switch detection)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && gameState.startEpoch) {
+    updateDisplay();
+    initTicker();
+  }
+});
+</script>
+</body>
+</html>
